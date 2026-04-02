@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Signup | GyaanGen</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+        .container {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 14px;
+            width: 340px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .brand {
+            text-align: center;
+            font-size: 26px;
+            font-weight: 600;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .tagline {
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 25px;
+        }
+
+        /* ✅ Error box */
+        .error {
+            background: #7f1d1d;
+            color: #fca5a5;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            border: 1px solid #ef4444;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #020617;
+            color: white;
+            outline: none;
+            transition: 0.2s;
+            box-sizing: border-box;
+        }
+        input::placeholder { color: #64748b; }
+        input:focus { border-color: #2563eb; }
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+        button:hover { background: #1d4ed8; }
+        .link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        a { color: #2563eb; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="brand">GyaanGen</div>
+    <div class="tagline">Learn Smarter. Stay Consistent.</div>
+
+    <!-- ✅ Only shows if error exists -->
+    <% if (error) { %>
+        <div class="error"><%= error %></div>
+    <% } %>
+
+    <form action="/user/signup" method="POST">
+        <input type="text" name="name" placeholder="Full Name" required />
+        <input type="text" name="userClass" placeholder="Class (e.g. 10)" required />
+        <input type="email" name="email" placeholder="Email address" required />
+        <input type="password" name="password" placeholder="Password" required />
+        <button type="submit">Create Account</button>
+    </form>
+
+    <div class="link">
+        Already have an account? <a href="/user/login">Login</a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reader</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #0f172a;
+            color: white;
+            font-family: Arial;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        iframe {
+            width: 70%;
+            border: 2px solid #38bdf8;
+            border-radius: 12px;
+            margin: 15px;
+            background: #020617;
+            box-shadow: 
+                0 0 10px rgba(56, 189, 248, 0.4),
+                0 0 20px rgba(56, 189, 248, 0.2);
+            transition: 0.3s;
+        }
+
+        .notes {
+            width: 30%;
+            padding: 20px;
+            background: #1e293b;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notes h3 {
+            margin-bottom: 12px;
+            color: #38bdf8;
+        }
+
+        textarea {
+            flex: 1;
+            resize: none;
+            padding: 10px;
+            background: #0f172a;
+            color: white;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #38bdf8;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            background: #38bdf8;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #0f172a;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #0ea5e9;
+        }
+
+        #status {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #38bdf8;
+            text-align: center;
+            min-height: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <iframe src="<%= pdf %>"></iframe>
+
+    <div class="notes">
+        <h3>📝 My Notes</h3>
+
+        <!-- 
+            textarea starts empty, but loadNote() fills it 
+            with whatever the user had saved before 
+        -->
+        <textarea id="noteInput" placeholder="Write your notes here..."></textarea>
+
+        <button onclick="saveNote()">Save Notes</button>
+
+        <!-- shows "✓ Saved" briefly after saving -->
+        <div id="status"></div>
+    </div>
+
+</div>
+
+<script>
+    // pdfUrl is injected by EJS from the query param
+    // this is the unique identifier for which chapter's notes to load/save
+    const pdfUrl = "<%= pdf %>";
+
+    // runs when page loads — fetches saved note from DB and fills textarea
+    async function loadNote() {
+        try {
+            const res = await fetch(`/home/reader/notes?pdfUrl=${encodeURIComponent(pdfUrl)}`);
+            const data = await res.json();
+
+            // if user had notes before, textarea shows them
+            // if first visit, data.text is "" so textarea stays empty
+            document.getElementById("noteInput").value = data.text;
+
+        } catch (err) {
+            console.log("Could not load notes", err);
+        }
+    }
+
+    // runs when user clicks Save
+    async function saveNote() {
+        // grab the ENTIRE textarea content — old notes + new additions + any edits
+        const text = document.getElementById("noteInput").value.trim();
+
+        try {
+            const res = await fetch("/home/reader/notes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pdfUrl, text })
+                // sends the full text to backend
+                // backend replaces whatever was in DB with this new full text
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById("status").innerText = "✓ Notes Saved";
+                // clears the "Saved" message after 2 seconds
+                setTimeout(() => {
+                    document.getElementById("status").innerText = "";
+                }, 2000);
+            }
+
+        } catch (err) {
+            console.log("Could not save notes", err);
+            document.getElementById("status").innerText = "❌ Save failed";
+        }
+    }
+
+    // called immediately when page opens
+    loadNote();
+</script>
+
+</body>
+</html>

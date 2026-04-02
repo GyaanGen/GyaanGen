@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chapters</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chapter {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .chapter:hover {
+            background: #334155;
+            transform: translateX(5px);
+        }
+
+        .back {
+            margin-bottom: 20px;
+            cursor: pointer;
+            color: #94a3b8;
+        }
+
+        .back:hover {
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="back" onclick="goBack()">← Back</div>
+
+    <h2>Chapters</h2>
+
+    <div class="list">
+        <% chapters.forEach(ch => { %>
+            <div class="chapter" style="cursor:default; opacity:0.7;">
+                <%= ch.name %>
+            </div>
+        <% }) %>
+    </div> 
+
+</div>
+
+<script>
+
+function goBack() {
+    const subject = "<%= subject.trim() %>";
+    const bookCount = "<%= bookCount %>";
+
+    if (bookCount > "1") {
+        window.location.href = `/practice/subject?name=${encodeURIComponent(subject)}`;
+    } else {
+        window.location.href = "/home";
+    }
+}
+
+</script>
+
+</body>
+</html>

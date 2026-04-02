@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GyaanGen</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    display:flex;
+    min-height:100vh;
+    background:linear-gradient(135deg,#0f172a,#020617);
+    color:white;
+}
+
+/* Sidebar */
+.sidebar{
+    width:240px;
+    background:rgba(2,6,23,0.8);
+    backdrop-filter:blur(10px);
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+.logo{
+    font-size:22px;
+    font-weight:600;
+}
+
+.tab{
+    padding:12px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.tab:hover{
+    background:#1e293b;
+}
+
+.active{
+    background:linear-gradient(135deg,#2563eb,#38bdf8);
+}
+
+/* Main */
+.main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+}
+
+/* Topbar */
+.topbar{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    padding:15px 25px;
+}
+
+.user{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.avatar{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#2563eb,#38bdf8);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+/* Content */
+.content{
+    padding:20px;
+}
+
+.card{
+    background:rgba(30,41,59,0.6);
+    backdrop-filter:blur(10px);
+    padding:20px;
+    border-radius:15px;
+    margin-bottom:20px;
+}
+
+/* Grid */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:20px;
+}
+
+.subject{
+    background:rgba(51,65,85,0.6);
+    backdrop-filter:blur(10px);
+    padding:20px;
+    border-radius:15px;
+    text-align:center;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.subject:hover{
+    transform:translateY(-8px) scale(1.03);
+    background:linear-gradient(135deg,#2563eb,#38bdf8);
+}
+
+.subject span{
+    display:block;
+}
+
+.lang{
+    font-size:12px;
+    opacity:0.7;
+}
+
+/* Mobile */
+@media(max-width:768px){
+    body{
+        flex-direction:column;
+    }
+
+    .sidebar{
+        flex-direction:row;
+        width:100%;
+        justify-content:space-around;
+    }
+
+    .logo{
+        display:none;
+    }
+
+    .tab{
+        font-size:12px;
+        padding:10px;
+    }
+
+    .topbar{
+        flex-direction:column;
+        gap:10px;
+    }
+
+    .search{
+        width:100%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <div class="logo">GyaanGen</div>
+    <div class="tab active" onclick="showTab('home',this)">🏠 Home</div>
+    <div class="tab" onclick="showTab('practice',this)">📘 Practice</div>
+</div>
+
+<div class="main">
+
+<div class="topbar">
+    
+    <div class="user">
+        <span>Hi, <%= name || "User" %></span>
+        <div class="avatar">👤</div>
+    </div>
+</div>
+
+<div class="content">
+
+<div id="homeTab">
+    <div class="card">
+        <h2 id="greeting"></h2>
+    </div>
+
+    <div class="grid">
+        <% subjects.forEach(sub => { %>
+            <div class="subject" onclick="openSubject('<%= sub.subject %>')">
+                <span><%= sub.subject.toUpperCase() %></span>
+                <span class="lang"><%= sub.language %></span>
+            </div>
+        <% }) %>
+    </div>
+</div>
+
+<div id="practiceTab" style="display:none;">
+    <div class="grid">
+        <% subjects.forEach(sub => { %>
+            <div class="subject" onclick="openPracticeSubject('<%= sub.subject %>')">
+                <span><%= sub.subject.toUpperCase() %></span>
+                <span class="lang"><%= sub.language %></span>
+            </div>
+        <% }) %>
+    </div>
+</div>
+
+</div>
+</div>
+
+<script>
+function showTab(tab,el){
+    document.getElementById('homeTab').style.display='none';
+    document.getElementById('practiceTab').style.display='none';
+
+    document.getElementById(tab+'Tab').style.display='block';
+
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+}
+
+const hour=new Date().getHours();
+let greeting="Hello";
+
+if(hour<12) greeting+=", Good Morning 🌅";
+else if(hour<18) greeting+=", Good Afternoon ☀️";
+else greeting+=", Good Evening 🌙";
+
+document.getElementById("greeting").innerText=greeting;
+
+function openSubject(subject){
+    window.location.href=`/home/subject?name=${subject}`;
+}
+function openPracticeSubject(subject){
+    window.location.href=`/practice/subject?name=${subject}`;
+}
+</script>
+
+</body>
+</html>
