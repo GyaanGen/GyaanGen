@@ -2,7 +2,9 @@ const express = require("express");
 const router = express.Router();
 const fs = require("fs");
 const path = require("path");
-const auth = require("../middleware/auth"); 
+const auth = require("../middleware/auth");
+
+const { handlePracticeGeneration } = require("../controllers/practice");
 
 router.get("/",auth, (req,res) => {
     const data = JSON.parse(
@@ -79,6 +81,14 @@ router.get("/chapters", auth, (req, res) => {
         book,
         bookCount: subjectData.books.length
     });
+});
+
+// when user clicks a chapter, this route is called
+router.get("/generate", auth, handlePracticeGeneration);
+
+router.get("/quiz", auth, (req, res) => {
+    const pdf = req.query.pdf;
+    res.render("practice_quiz", { pdf });
 });
 
 module.exports = router;

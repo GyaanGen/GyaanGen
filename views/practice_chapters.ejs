@@ -60,7 +60,7 @@
 
     <div class="list">
         <% chapters.forEach(ch => { %>
-            <div class="chapter" style="cursor:default; opacity:0.7;">
+            <div class="chapter" onclick="openPractice('<%= ch.url %>')" style="cursor:default; opacity:0.7;">
                 <%= ch.name %>
             </div>
         <% }) %>
@@ -69,6 +69,10 @@
 </div>
 
 <script>
+
+function openPractice(pdfUrl) {
+    window.location.href = `/practice/quiz?pdf=${encodeURIComponent(pdfUrl)}`;
+}    
 
 function goBack() {
     const subject = "<%= subject.trim() %>";

@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Practice Quiz | GyaanGen</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg:        #060910;
+            --surface:   #0d1117;
+            --card:      #111827;
+            --border:    #1f2937;
+            --accent:    #38bdf8;
+            --accent2:   #818cf8;
+            --accent3:   #34d399;
+            --warn:      #fb923c;
+            --danger:    #f87171;
+            --text:      #f1f5f9;
+            --muted:     #64748b;
+            --correct:   #16a34a;
+            --wrong:     #dc2626;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Background grid ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Glow orbs ── */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .orb1 { width: 500px; height: 500px; background: var(--accent); top: -150px; right: -150px; }
+        .orb2 { width: 400px; height: 400px; background: var(--accent2); bottom: -100px; left: -100px; }
+
+        /* ── Loader ── */
+        #loader {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            z-index: 100;
+            background: var(--bg);
+        }
+
+        .loader-ring {
+            width: 64px;
+            height: 64px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loader-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+            animation: pulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+        /* ── Top nav ── */
+        .topnav {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 32px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(6,9,16,0.8);
+            backdrop-filter: blur(12px);
+        }
+
+        .logo {
+            font-family: 'Space Mono', monospace;
+            font-size: 16px;
+            color: var(--accent);
+            letter-spacing: 0.08em;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+
+        .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* ── Tab bar ── */
+        .tabbar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            gap: 4px;
+            padding: 16px 32px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            padding: 10px 22px;
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover { color: var(--text); }
+
+        .tab-btn.active {
+            color: var(--text);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-pill {
+            font-size: 11px;
+            padding: 2px 7px;
+            border-radius: 99px;
+            font-weight: 600;
+        }
+
+        .pill-mcq   { background: rgba(56,189,248,0.15);  color: var(--accent);  }
+        .pill-short { background: rgba(129,140,248,0.15); color: var(--accent2); }
+        .pill-long  { background: rgba(52,211,153,0.15);  color: var(--accent3); }
+        .pill-disc  { background: rgba(251,146,60,0.15);  color: var(--warn);    }
+
+        /* ── Tab panels ── */
+        .panel { display: none; padding: 32px; position: relative; z-index: 1; }
+        .panel.active { display: block; }
+
+        /* ── MCQ Card ── */
+        .mcq-wrap {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .mcq-progress {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar-track {
+            flex: 1;
+            height: 4px;
+            background: var(--border);
+            border-radius: 99px;
+            margin: 0 16px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            border-radius: 99px;
+            transition: width 0.4s ease;
+        }
+
+        .progress-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .mcq-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            animation: slideIn 0.35s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .mcq-number {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+
+        .mcq-question {
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.6;
+            margin-bottom: 28px;
+            color: var(--text);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .option {
+            padding: 14px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option-letter {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            flex-shrink: 0;
+            transition: 0.2s;
+        }
+
+        .option:hover:not(.locked) {
+            border-color: var(--accent);
+            background: rgba(56,189,248,0.05);
+        }
+
+        .option:hover:not(.locked) .option-letter {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .option.correct {
+            border-color: var(--correct);
+            background: rgba(22,163,74,0.1);
+        }
+
+        .option.correct .option-letter { background: var(--correct); color: #fff; }
+
+        .option.wrong {
+            border-color: var(--wrong);
+            background: rgba(220,38,38,0.1);
+        }
+
+        .option.wrong .option-letter { background: var(--wrong); color: #fff; }
+
+        .option.locked { cursor: default; }
+
+        .result-badge {
+            margin-top: 20px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-badge.show { display: flex; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+        .result-badge.correct-badge { background: rgba(22,163,74,0.12); color: #4ade80; border: 1px solid rgba(22,163,74,0.3); }
+        .result-badge.wrong-badge   { background: rgba(220,38,38,0.12);  color: #f87171; border: 1px solid rgba(220,38,38,0.3);  }
+
+        .next-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            display: none;
+            transition: opacity 0.2s;
+        }
+
+        .next-btn:hover { opacity: 0.85; }
+        .next-btn.show { display: block; animation: fadeIn 0.3s ease; }
+
+        /* ── Score card ── */
+        .score-card {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 48px 32px;
+            animation: slideIn 0.4s ease;
+        }
+
+        .score-emoji { font-size: 56px; margin-bottom: 16px; }
+
+        .score-number {
+            font-family: 'Space Mono', monospace;
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .score-label { color: var(--muted); font-size: 14px; margin-top: 8px; }
+
+        .retry-btn {
+            margin-top: 28px;
+            padding: 12px 32px;
+            background: transparent;
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            color: var(--accent);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .retry-btn:hover { background: rgba(56,189,248,0.1); }
+
+        /* ── Written Q sections ── */
+        .written-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+
+        .written-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px 28px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            animation: slideIn 0.3s ease both;
+        }
+
+        .written-card:nth-child(1)  { animation-delay: 0.05s; }
+        .written-card:nth-child(2)  { animation-delay: 0.10s; }
+        .written-card:nth-child(3)  { animation-delay: 0.15s; }
+        .written-card:nth-child(4)  { animation-delay: 0.20s; }
+        .written-card:nth-child(5)  { animation-delay: 0.25s; }
+        .written-card:nth-child(6)  { animation-delay: 0.30s; }
+        .written-card:nth-child(7)  { animation-delay: 0.35s; }
+        .written-card:nth-child(8)  { animation-delay: 0.40s; }
+        .written-card:nth-child(9)  { animation-delay: 0.45s; }
+        .written-card:nth-child(10) { animation-delay: 0.50s; }
+
+        .q-number {
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            min-width: 32px;
+            padding-top: 2px;
+        }
+
+        .short-num { color: var(--accent2); }
+        .long-num  { color: var(--accent3); }
+        .disc-num  { color: var(--warn); }
+
+        .q-text { font-size: 15px; line-height: 1.65; color: var(--text); }
+
+        .section-header {
+            max-width: 720px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .icon-short { background: rgba(129,140,248,0.15); }
+        .icon-long  { background: rgba(52,211,153,0.15);  }
+        .icon-disc  { background: rgba(251,146,60,0.15);  }
+
+        .section-title { font-size: 20px; font-weight: 600; }
+        .section-sub   { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+            .panel { padding: 20px 16px; }
+            .topnav { padding: 14px 16px; }
+            .tabbar { padding: 12px 16px 0; overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- Loader -->
+<div id="loader">
+    <div class="loader-ring"></div>
+    <p class="loader-text">GENERATING QUESTIONS WITH AI...</p>
+</div>
+
+<!-- Main content -->
+<div id="mainContent" style="display:none;">
+
+    <nav class="topnav">
+        <span class="logo">GYAANGEN</span>
+        <a class="back-btn" onclick="history.back()">← Back</a>
+    </nav>
+
+    <div class="tabbar">
+        <button class="tab-btn active" onclick="switchTab('mcq', this)">
+            ⚡ MCQs <span class="tab-pill pill-mcq" id="mcqPill">10</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('short', this)">
+            ✏️ Short Answer <span class="tab-pill pill-short" id="shortPill">10</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('long', this)">
+            📝 Long Answer <span class="tab-pill pill-long" id="longPill">10</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('disc', this)">
+            💬 Discussion <span class="tab-pill pill-disc" id="discPill">2</span>
+        </button>
+    </div>
+
+    <!-- MCQ Panel -->
+    <div class="panel active" id="panel-mcq">
+        <div class="mcq-wrap">
+            <div class="mcq-progress">
+                <span class="progress-label" id="progressLabel">1 / 10</span>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" id="progressBar" style="width:10%"></div>
+                </div>
+                <span class="progress-label" id="scoreLabel">Score: 0</span>
+            </div>
+            <div id="mcqContainer"></div>
+        </div>
+    </div>
+
+    <!-- Short Answer Panel -->
+    <div class="panel" id="panel-short">
+        <div class="section-header">
+            <div class="section-icon icon-short">✏️</div>
+            <div>
+                <div class="section-title">Short Answer Questions</div>
+                <div class="section-sub">Write concise answers — 2 to 4 sentences each</div>
+            </div>
+        </div>
+        <div class="written-list" id="shortContainer"></div>
+    </div>
+
+    <!-- Long Answer Panel -->
+    <div class="panel" id="panel-long">
+        <div class="section-header">
+            <div class="section-icon icon-long">📝</div>
+            <div>
+                <div class="section-title">Long Answer Questions</div>
+                <div class="section-sub">Detailed answers required — use examples and explanations</div>
+            </div>
+        </div>
+        <div class="written-list" id="longContainer"></div>
+    </div>
+
+    <!-- Discussion Panel -->
+    <div class="panel" id="panel-disc">
+        <div class="section-header">
+            <div class="section-icon icon-disc">💬</div>
+            <div>
+                <div class="section-title">Discussion Questions</div>
+                <div class="section-sub">Think critically — there's no single right answer</div>
+            </div>
+        </div>
+        <div class="written-list" id="discContainer"></div>
+    </div>
+
+</div>
+
+<script>
+    const pdfUrl = "<%= pdf %>";
+
+    let allMcqs = [];
+    let currentIndex = 0;
+    let score = 0;
+
+    // ── Tab switching ──
+    function switchTab(name, el) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('panel-' + name).classList.add('active');
+        el.classList.add('active');
+    }
+
+    // ── Render one MCQ ──
+    function renderMCQ(index) {
+        if (index >= allMcqs.length) {
+            showScore();
+            return;
+        }
+
+        const q = allMcqs[index];
+        const letters = ['A', 'B', 'C', 'D'];
+        const pct = Math.round(((index) / allMcqs.length) * 100);
+
+        document.getElementById('progressLabel').textContent = `${index + 1} / ${allMcqs.length}`;
+        document.getElementById('progressBar').style.width = `${pct}%`;
+        document.getElementById('scoreLabel').textContent = `Score: ${score}`;
+
+        document.getElementById('mcqContainer').innerHTML = `
+            <div class="mcq-card">
+                <div class="mcq-number">QUESTION ${index + 1} OF ${allMcqs.length}</div>
+                <div class="mcq-question">${q.question}</div>
+                <div class="options-grid">
+                    ${q.options.map((opt, i) => `
+                        <div class="option" id="opt-${i}" onclick="checkAnswer(${i}, '${opt.replace(/'/g,"\\'")}', '${q.answer.replace(/'/g,"\\'")}')">
+                            <div class="option-letter">${letters[i]}</div>
+                            <span>${opt}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="result-badge" id="resultBadge"></div>
+                <button class="next-btn" id="nextBtn" onclick="nextMCQ()">
+                    ${index + 1 < allMcqs.length ? 'Next Question →' : 'See Results'}
+                </button>
+            </div>
+        `;
+    }
+
+    function checkAnswer(selectedIdx, selected, correct) {
+        const allOpts = document.querySelectorAll('.option');
+        const badge = document.getElementById('resultBadge');
+        const nextBtn = document.getElementById('nextBtn');
+
+        // lock all options
+        allOpts.forEach((opt, i) => {
+            opt.classList.add('locked');
+            opt.onclick = null;
+            const optText = opt.querySelector('span').textContent.trim();
+            if (optText === correct.trim()) opt.classList.add('correct');
+        });
+
+        const selectedText = allOpts[selectedIdx].querySelector('span').textContent.trim();
+
+        if (selectedText === correct.trim()) {
+            score++;
+            badge.className = 'result-badge correct-badge show';
+            badge.innerHTML = '✅ Correct! Well done.';
+        } else {
+            allOpts[selectedIdx].classList.add('wrong');
+            badge.className = 'result-badge wrong-badge show';
+            badge.innerHTML = `❌ Incorrect. The correct answer is: <b>${correct}</b>`;
+        }
+
+        document.getElementById('scoreLabel').textContent = `Score: ${score}`;
+        nextBtn.classList.add('show');
+    }
+
+    function nextMCQ() {
+        currentIndex++;
+        renderMCQ(currentIndex);
+    }
+
+    function showScore() {
+        const pct = Math.round((score / allMcqs.length) * 100);
+        let emoji = pct >= 80 ? '🏆' : pct >= 60 ? '👍' : pct >= 40 ? '📚' : '😔';
+        let msg   = pct >= 80 ? 'Excellent work!' : pct >= 60 ? 'Good job!' : pct >= 40 ? 'Keep studying!' : 'Keep practicing!';
+
+        document.getElementById('progressBar').style.width = '100%';
+        document.getElementById('progressLabel').textContent = 'Complete!';
+
+        document.getElementById('mcqContainer').innerHTML = `
+            <div class="score-card">
+                <div class="score-emoji">${emoji}</div>
+                <div class="score-number">${score}/${allMcqs.length}</div>
+                <div class="score-label">${msg} You scored ${pct}%</div>
+                <button class="retry-btn" onclick="retryMCQ()">↺ Retry MCQs</button>
+            </div>
+        `;
+    }
+
+    function retryMCQ() {
+        currentIndex = 0;
+        score = 0;
+        renderMCQ(0);
+    }
+
+    // ── Render written questions ──
+    function renderWritten(list, containerId, numClass) {
+        document.getElementById(containerId).innerHTML = list.map((q, i) => `
+            <div class="written-card">
+                <div class="q-number ${numClass}">Q${i + 1}</div>
+                <div class="q-text">${q.question}</div>
+            </div>
+        `).join('');
+    }
+
+    // ── Load questions from backend ──
+    async function loadQuestions() {
+        try {
+            const res = await fetch(`/practice/generate?pdfUrl=${encodeURIComponent(pdfUrl)}`);
+            const data = await res.json();
+
+            if (!data.success) {
+                document.getElementById('loader').innerHTML = `
+                    <p style="color:#f87171;font-family:'Space Mono',monospace;font-size:14px;">
+                        ❌ Failed to generate questions. Please go back and try again.
+                    </p>`;
+                return;
+            }
+
+            const { mcqs, short_answers, long_answers, discussion_questions } = data.questions;
+
+            allMcqs = mcqs;
+
+            // update pills
+            document.getElementById('mcqPill').textContent   = mcqs.length;
+            document.getElementById('shortPill').textContent = short_answers.length;
+            document.getElementById('longPill').textContent  = long_answers.length;
+            document.getElementById('discPill').textContent  = discussion_questions.length;
+
+            // render all sections
+            renderMCQ(0);
+            renderWritten(short_answers,        'shortContainer', 'short-num');
+            renderWritten(long_answers,         'longContainer',  'long-num');
+            renderWritten(discussion_questions, 'discContainer',  'disc-num');
+
+            // show UI
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+
+        } catch (err) {
+            console.log('Error loading questions', err);
+            document.getElementById('loader').innerHTML = `
+                <p style="color:#f87171;font-family:'Space Mono',monospace;font-size:14px;">
+                    ❌ Something went wrong. Please go back and try again.
+                </p>`;
+        }
+    }
+
+    loadQuestions();
+</script>
+
+</body>
+</html>
