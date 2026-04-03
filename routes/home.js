@@ -21,7 +21,7 @@ router.get("/", auth, (req, res) => {
         )
     ].map(item => JSON.parse(item));  // ✅ unique subject+language combos
 
-    res.render("home", { subjects, name });
+    res.render("home", { subjects, name, activeTab: "home" });
 });
 
 

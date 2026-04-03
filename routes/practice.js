@@ -21,7 +21,7 @@ router.get("/",auth, (req,res) => {
         )
     ].map(item => JSON.parse(item));
 
-    return res.render("home", { subjects, name });  
+    return res.render("home", { subjects, name, activeTab: "practice" }); 
 });
 
 router.get("/subject", auth, (req, res) => {
