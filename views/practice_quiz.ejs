@@ -389,8 +389,8 @@
             border-radius: 14px;
             padding: 24px 28px;
             display: flex;
-            gap: 20px;
-            align-items: flex-start;
+            flex-direction: column;
+            gap: 0;
             animation: slideIn 0.3s ease both;
         }
 
@@ -404,6 +404,12 @@
         .written-card:nth-child(8)  { animation-delay: 0.40s; }
         .written-card:nth-child(9)  { animation-delay: 0.45s; }
         .written-card:nth-child(10) { animation-delay: 0.50s; }
+
+        .written-card-top {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
 
         .q-number {
             font-family: 'Space Mono', monospace;
@@ -444,6 +450,58 @@
 
         .section-title { font-size: 20px; font-weight: 600; }
         .section-sub   { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+        /* ── Answer reveal ── */
+        .answer-toggle {
+            margin-top: 16px;
+            padding: 7px 16px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+            align-self: flex-start;
+        }
+
+        .answer-toggle:hover { border-color: var(--accent2); color: var(--accent2); }
+
+        .answer-box {
+            display: none;
+            margin-top: 14px;
+            padding: 16px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.75;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .answer-box.show { display: block; }
+
+        .answer-box.short-ans  { background: rgba(129,140,248,0.07); border: 1px solid rgba(129,140,248,0.2); color: #c7d2fe; }
+        .answer-box.long-ans   { background: rgba(52,211,153,0.07);  border: 1px solid rgba(52,211,153,0.2);  color: #a7f3d0; }
+        .answer-box.disc-hints { background: rgba(251,146,60,0.07);  border: 1px solid rgba(251,146,60,0.2);  color: #fed7aa; }
+
+        .ans-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+            opacity: 0.65;
+            text-transform: uppercase;
+        }
+
+        .hint-item { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
+        .hint-dot  {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--warn);
+            flex-shrink: 0;
+            margin-top: 7px;
+        }
 
         @media (max-width: 600px) {
             .options-grid { grid-template-columns: 1fr; }
@@ -647,14 +705,63 @@
         renderMCQ(0);
     }
 
+    // ── Toggle answer visibility ──
+    function toggleAnswer(btn) {
+        const box = btn.nextElementSibling;
+        const isOpen = box.classList.toggle('show');
+        const isDisc = box.classList.contains('disc-hints');
+        btn.textContent = isOpen
+            ? (isDisc ? 'Hide Key Points ▴' : 'Hide Answer ▴')
+            : (isDisc ? 'Show Key Points ▾' : 'Show Answer ▾');
+    }
+
     // ── Render written questions ──
-    function renderWritten(list, containerId, numClass) {
-        document.getElementById(containerId).innerHTML = list.map((q, i) => `
-            <div class="written-card">
-                <div class="q-number ${numClass}">Q${i + 1}</div>
-                <div class="q-text">${q.question}</div>
-            </div>
-        `).join('');
+    function renderWritten(list, containerId, numClass, type) {
+        document.getElementById(containerId).innerHTML = list.map((q, i) => {
+
+            let answerHTML = '';
+
+            if (type === 'short') {
+                answerHTML = `
+                    <button class="answer-toggle" onclick="toggleAnswer(this)">Show Answer ▾</button>
+                    <div class="answer-box short-ans">
+                        <div class="ans-label">💡 Ideal Answer</div>
+                        ${q.answer || 'Answer not available.'}
+                    </div>`;
+            }
+
+            if (type === 'long') {
+                answerHTML = `
+                    <button class="answer-toggle" onclick="toggleAnswer(this)">Show Answer ▾</button>
+                    <div class="answer-box long-ans">
+                        <div class="ans-label">📖 Model Answer</div>
+                        ${q.answer || 'Answer not available.'}
+                    </div>`;
+            }
+
+            if (type === 'disc') {
+                const hintsHTML = (q.hints || []).map(h => `
+                    <div class="hint-item">
+                        <div class="hint-dot"></div>
+                        <span>${h}</span>
+                    </div>`).join('');
+                answerHTML = `
+                    <button class="answer-toggle" onclick="toggleAnswer(this)">Show Key Points ▾</button>
+                    <div class="answer-box disc-hints">
+                        <div class="ans-label">🔑 Key Points to Discuss</div>
+                        ${hintsHTML}
+                    </div>`;
+            }
+
+            return `
+                <div class="written-card">
+                    <div class="written-card-top">
+                        <div class="q-number ${numClass}">Q${i + 1}</div>
+                        <div class="q-text">${q.question}</div>
+                    </div>
+                    ${answerHTML}
+                </div>`;
+        }).join('');
     }
 
     // ── Load questions from backend ──
@@ -683,9 +790,9 @@
 
             // render all sections
             renderMCQ(0);
-            renderWritten(short_answers,        'shortContainer', 'short-num');
-            renderWritten(long_answers,         'longContainer',  'long-num');
-            renderWritten(discussion_questions, 'discContainer',  'disc-num');
+            renderWritten(short_answers,        'shortContainer', 'short-num', 'short');
+            renderWritten(long_answers,         'longContainer',  'long-num',  'long');
+            renderWritten(discussion_questions, 'discContainer',  'disc-num',  'disc');
 
             // show UI
             document.getElementById('loader').style.display = 'none';

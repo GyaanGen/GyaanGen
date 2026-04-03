@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Reader</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
         body {
@@ -14,6 +16,7 @@
         .container {
             display: flex;
             height: 100vh;
+            flex-direction: row;
         }
 
         iframe {
@@ -22,7 +25,7 @@
             border-radius: 12px;
             margin: 15px;
             background: #020617;
-            box-shadow: 
+            box-shadow:
                 0 0 10px rgba(56, 189, 248, 0.4),
                 0 0 20px rgba(56, 189, 248, 0.2);
             transition: 0.3s;
@@ -34,6 +37,57 @@
             background: #1e293b;
             display: flex;
             flex-direction: column;
+        }
+
+        /* ── Mobile: stack vertically with tabs ── */
+        @media (max-width: 768px) {
+
+            .container {
+                flex-direction: column;
+                height: calc(100vh - 45px); /* subtract tab bar height */
+            }
+
+            .mobile-tabs {
+                display: flex;
+                background: #0f172a;
+                border-bottom: 1px solid #334155;
+            }
+
+            .mobile-tab {
+                flex: 1;
+                padding: 12px;
+                text-align: center;
+                font-size: 13px;
+                cursor: pointer;
+                color: #64748b;
+                border-bottom: 2px solid transparent;
+                transition: 0.2s;
+            }
+
+            .mobile-tab.active {
+                color: #38bdf8;
+                border-bottom-color: #38bdf8;
+            }
+
+            iframe {
+                width: calc(100% - 20px);
+                margin: 10px;
+                flex: 1;
+                min-height: 0;
+            }
+
+            .notes {
+                width: 100%;
+                flex: 1;
+                min-height: 0;
+            }
+
+            .hidden-mobile { display: none !important; }
+        }
+
+        /* Desktop: hide tab switcher */
+        @media (min-width: 769px) {
+            .mobile-tabs { display: none; }
         }
 
         .notes h3 {
@@ -70,9 +124,7 @@
             transition: 0.2s;
         }
 
-        button:hover {
-            background: #0ea5e9;
-        }
+        button:hover { background: #0ea5e9; }
 
         #status {
             margin-top: 8px;
@@ -85,50 +137,66 @@
 </head>
 <body>
 
+<!-- Mobile tab bar (hidden on desktop via CSS) -->
+<div class="mobile-tabs">
+    <div class="mobile-tab active" id="tab-pdf" onclick="switchMobileTab('pdf')">📄 PDF</div>
+    <div class="mobile-tab" id="tab-notes" onclick="switchMobileTab('notes')">📝 Notes</div>
+</div>
+
 <div class="container">
 
-    <iframe src="<%= pdf %>"></iframe>
+    <iframe id="pdfFrame" src="<%= pdf %>"></iframe>
 
-    <div class="notes">
+    <div class="notes" id="notesPanel">
         <h3>📝 My Notes</h3>
-
-        <!-- 
-            textarea starts empty, but loadNote() fills it 
-            with whatever the user had saved before 
-        -->
         <textarea id="noteInput" placeholder="Write your notes here..."></textarea>
-
         <button onclick="saveNote()">Save Notes</button>
-
-        <!-- shows "✓ Saved" briefly after saving -->
         <div id="status"></div>
     </div>
 
 </div>
 
 <script>
-    // pdfUrl is injected by EJS from the query param
-    // this is the unique identifier for which chapter's notes to load/save
     const pdfUrl = "<%= pdf %>";
 
-    // runs when page loads — fetches saved note from DB and fills textarea
+    // ── Mobile tab switching ──
+    function switchMobileTab(tab) {
+        const pdf   = document.getElementById('pdfFrame');
+        const notes = document.getElementById('notesPanel');
+        const isMobile = window.innerWidth <= 768;
+
+        if (!isMobile) return;
+
+        if (tab === 'pdf') {
+            pdf.classList.remove('hidden-mobile');
+            notes.classList.add('hidden-mobile');
+        } else {
+            pdf.classList.add('hidden-mobile');
+            notes.classList.remove('hidden-mobile');
+        }
+
+        document.getElementById('tab-pdf').classList.toggle('active', tab === 'pdf');
+        document.getElementById('tab-notes').classList.toggle('active', tab === 'notes');
+    }
+
+    // On load — hide notes panel on mobile by default, show PDF
+    if (window.innerWidth <= 768) {
+        document.getElementById('notesPanel').classList.add('hidden-mobile');
+    }
+
+    // ── Load saved note from DB on page open ──
     async function loadNote() {
         try {
             const res = await fetch(`/home/reader/notes?pdfUrl=${encodeURIComponent(pdfUrl)}`);
             const data = await res.json();
-
-            // if user had notes before, textarea shows them
-            // if first visit, data.text is "" so textarea stays empty
             document.getElementById("noteInput").value = data.text;
-
         } catch (err) {
             console.log("Could not load notes", err);
         }
     }
 
-    // runs when user clicks Save
+    // ── Save note to DB ──
     async function saveNote() {
-        // grab the ENTIRE textarea content — old notes + new additions + any edits
         const text = document.getElementById("noteInput").value.trim();
 
         try {
@@ -136,15 +204,12 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ pdfUrl, text })
-                // sends the full text to backend
-                // backend replaces whatever was in DB with this new full text
             });
 
             const data = await res.json();
 
             if (data.success) {
                 document.getElementById("status").innerText = "✓ Notes Saved";
-                // clears the "Saved" message after 2 seconds
                 setTimeout(() => {
                     document.getElementById("status").innerText = "";
                 }, 2000);
@@ -156,7 +221,7 @@
         }
     }
 
-    // called immediately when page opens
+    // Load note when page opens
     loadNote();
 </script>
 

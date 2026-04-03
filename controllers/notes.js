@@ -24,7 +24,7 @@ async function handleNoteMaking(req,res){
         await Note.findOneAndUpdate(
             { userId, pdfUrl},
             { text, updatedAt: new Date() },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         )
         return res.json({ success: true, message: "Note saved successfully" });
     

@@ -2,22 +2,45 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Chapters</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapters | GyaanGen</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            margin: 0;
-            font-family: Arial;
+            font-family: 'Poppins', Arial, sans-serif;
             background: #0f172a;
             color: white;
+            min-height: 100vh;
         }
 
         .container {
-            padding: 30px;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 30px 20px;
         }
+
+        .back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 24px;
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .back:hover { color: #38bdf8; }
 
         h2 {
             margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #f1f5f9;
         }
 
         .list {
@@ -28,25 +51,26 @@
 
         .chapter {
             background: #1e293b;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 16px 20px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: 0.3s;
+            transition: 0.25s;
+            border: 1px solid transparent;
+            font-size: 15px;
+            line-height: 1.4;
         }
 
         .chapter:hover {
             background: #334155;
-            transform: translateX(5px);
+            border-color: #818cf8;
+            transform: translateX(4px);
         }
 
-        .back {
-            margin-bottom: 20px;
-            cursor: pointer;
-            color: #94a3b8;
-        }
-
-        .back:hover {
-            color: #38bdf8;
+        @media (max-width: 480px) {
+            .container { padding: 20px 16px; }
+            h2 { font-size: 20px; }
+            .chapter { font-size: 14px; padding: 14px 16px; }
+            .chapter:hover { transform: none; }
         }
     </style>
 </head>
@@ -60,22 +84,21 @@
 
     <div class="list">
         <% chapters.forEach(ch => { %>
-            <div class="chapter" onclick="openPractice('<%= ch.url %>')" style="cursor:default; opacity:0.7;">
+            <div class="chapter" onclick="openPractice('<%= ch.url %>')">
                 <%= ch.name %>
             </div>
         <% }) %>
-    </div> 
+    </div>
 
 </div>
 
 <script>
-
 function openPractice(pdfUrl) {
     window.location.href = `/practice/quiz?pdf=${encodeURIComponent(pdfUrl)}`;
-}    
+}
 
 function goBack() {
-    const subject = "<%= subject.trim() %>";
+    const subject   = "<%= subject.trim() %>";
     const bookCount = "<%= bookCount %>";
 
     if (bookCount > "1") {
@@ -84,7 +107,6 @@ function goBack() {
         window.location.href = "/home";
     }
 }
-
 </script>
 
 </body>
