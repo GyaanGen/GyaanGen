@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | GyaanGen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a, #020617);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 240px;
+            background: rgba(2,6,23,0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+
+        .logo { font-size: 22px; font-weight: 600; color: white; }
+
+        .tab {
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+
+        .tab:hover { background: #1e293b; }
+        .active { background: linear-gradient(135deg, #2563eb, #38bdf8); }
+
+        /* ── Main ── */
+        .main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+
+        .topbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 15px 25px;
+        }
+
+        .user { display: flex; align-items: center; gap: 10px; }
+
+        .avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* ── Logout ── */
+        .logout-btn {
+            background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.4);
+            color: #f87171;
+            padding: 7px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .logout-btn:hover { background: rgba(239,68,68,0.3); }
+
+        /* ── Content ── */
+        .content { padding: 20px 30px; }
+
+        /* ── Profile header card ── */
+        .profile-header {
+            background: rgba(30,41,59,0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(56,189,248,0.1);
+        }
+
+        .profile-avatar {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .profile-info h2 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .profile-info p {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 2px;
+        }
+
+        .class-badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 12px;
+            background: rgba(56,189,248,0.15);
+            border: 1px solid rgba(56,189,248,0.3);
+            border-radius: 99px;
+            font-size: 12px;
+            color: #38bdf8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Stats grid ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: rgba(30,41,59,0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(56,189,248,0.2);
+        }
+
+        .stat-icon { font-size: 28px; margin-bottom: 10px; }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .stat-label { font-size: 12px; color: #64748b; }
+
+        /* ── Recent quiz section ── */
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 12px;
+        }
+
+        .quiz-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .quiz-card {
+            background: rgba(30,41,59,0.6);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.2s;
+        }
+
+        .quiz-card:hover { border-color: rgba(56,189,248,0.2); }
+
+        .quiz-info { flex: 1; }
+
+        .quiz-subject {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .quiz-chapter {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .quiz-date {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        .quiz-score {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .score-pct {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .score-raw {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .score-emoji { font-size: 18px; }
+
+        .empty-state {
+            background: rgba(30,41,59,0.4);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+
+            .sidebar {
+                flex-direction: row;
+                width: 100%;
+                justify-content: space-around;
+                padding: 10px;
+            }
+
+            .logo { display: none; }
+            .tab { font-size: 12px; padding: 10px; }
+
+            .content { padding: 16px; }
+
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+
+            .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .stat-value { font-size: 24px; }
+            .stat-icon  { font-size: 22px; }
+
+            .quiz-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .quiz-score { align-items: flex-start; flex-direction: row; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="logo">GyaanGen</div>
+    <a class="tab" href="/home">🏠 Home</a>
+    <a class="tab" href="/practice">📘 Practice</a>
+    <a class="tab active" >👤 Profile</a>
+</div>
+
+<div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+        <div class="user">
+            <span>Hi, <%= user.name %></span>
+            <a class="avatar" href="/home/profile">👤</a>
+            <form action="/user/logout" method="POST" style="margin:0;">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar">👤</div>
+            <div class="profile-info">
+                <h2><%= user.name %></h2>
+                <p>📧 <%= user.email %></p>
+                <span class="class-badge"><%= user.userClass.replace("class", "Class ") %></span>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-value"><%= chaptersRead %></div>
+                <div class="stat-label">Chapters Read</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value"><%= avgScore %>%</div>
+                <div class="stat-label">Avg Quiz Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-value"><%= streak %></div>
+                <div class="stat-label">Day Streak</div>
+            </div>
+        </div>
+
+        <!-- Recent Quiz Attempts -->
+        <div class="section-title">Recent Quiz Attempts</div>
+
+        <% if (recentQuizzes.length === 0) { %>
+            <div class="empty-state">
+                No quiz attempts yet. Go practice a chapter! 📘
+            </div>
+        <% } else { %>
+            <div class="quiz-list">
+                <% recentQuizzes.forEach(q => { %>
+                    <div class="quiz-card">
+                        <div class="quiz-info">
+                            <div class="quiz-subject"><%= q.subject || "Unknown Subject" %></div>
+                            <div class="quiz-chapter"><%= q.chapterName || q.pdfUrl.split("/").pop() %></div>
+                            <div class="quiz-date">
+                                <%= new Date(q.attemptedAt).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" }) %>
+                            </div>
+                        </div>
+                        <div class="quiz-score">
+                            <span class="score-emoji">
+                                <%= q.percentage >= 80 ? "🏆" : q.percentage >= 60 ? "👍" : q.percentage >= 40 ? "📚" : "😔" %>
+                            </span>
+                            <span class="score-pct" style="color: <%= q.percentage >= 60 ? '#4ade80' : q.percentage >= 40 ? '#fb923c' : '#f87171' %>">
+                                <%= q.percentage %>%
+                            </span>
+                            <span class="score-raw"><%= q.score %>/<%= q.total %></span>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        <% } %>
+
+    </div>
+</div>
+
+</body>
+</html>

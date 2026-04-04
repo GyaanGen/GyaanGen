@@ -4,10 +4,18 @@ const router = express.Router();
 const { handleUserSignUp, handleUserLogin, handleLogOut } = require("../controllers/user")
 
 router.get("/login", (req,res) =>{
-    return res.render("login", { error: null })
+    const token = req.cookies.token;
+    if (token) return res.redirect("/home");
+
+    res.setHeader("Cache-Control", "no-store");
+    return res.render("login", { error: null });
 })
 router.get("/signup",(req,res) =>{
-    return res.render("signup", { error: null })
+    const token = req.cookies.token;
+    if (token) return res.redirect("/home");
+
+    res.setHeader("Cache-Control", "no-store");
+    return res.render("signup", { error: null });
 })
 
 router.post("/signup", handleUserSignUp)

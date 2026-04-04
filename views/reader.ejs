@@ -1,228 +1,266 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Reader</title>
+    <title>Reader | GyaanGen</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        body {
-            margin: 0;
-            background: #0f172a;
-            color: white;
-            font-family: Arial;
-        }
-
-        .container {
-            display: flex;
-            height: 100vh;
-            flex-direction: row;
-        }
-
-        iframe {
-            width: 70%;
-            border: 2px solid #38bdf8;
-            border-radius: 12px;
-            margin: 15px;
-            background: #020617;
-            box-shadow:
-                0 0 10px rgba(56, 189, 248, 0.4),
-                0 0 20px rgba(56, 189, 248, 0.2);
-            transition: 0.3s;
-        }
-
-        .notes {
-            width: 30%;
-            padding: 20px;
-            background: #1e293b;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ── Mobile: stack vertically with tabs ── */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0f172a; color: white; font-family: 'Poppins', Arial, sans-serif; height: 100vh; overflow: hidden; }
+        .mobile-tabs { display: none; background: #0d1117; border-bottom: 1px solid #1f2937; }
+        .mobile-tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; cursor: pointer; color: #64748b; border-bottom: 2px solid transparent; transition: 0.2s; }
+        .mobile-tab.active { color: #38bdf8; border-bottom-color: #38bdf8; }
+        .container { display: flex; height: 100vh; }
+        iframe { width: 70%; border: 2px solid #38bdf8; border-radius: 12px; margin: 15px; background: #020617; box-shadow: 0 0 10px rgba(56,189,248,0.4), 0 0 20px rgba(56,189,248,0.2); flex-shrink: 0; }
+        .right-panel { width: 30%; display: flex; flex-direction: column; background: #0d1117; border-left: 1px solid #1f2937; min-width: 0; }
+        .panel-tabs { display: flex; border-bottom: 1px solid #1f2937; flex-shrink: 0; }
+        .panel-tab { flex: 1; padding: 14px 8px; text-align: center; font-size: 13px; font-weight: 500; cursor: pointer; color: #64748b; border-bottom: 2px solid transparent; transition: 0.2s; }
+        .panel-tab:hover { color: #94a3b8; }
+        .panel-tab.active { color: #38bdf8; border-bottom-color: #38bdf8; }
+        .notes-panel { display: none; flex-direction: column; flex: 1; padding: 18px; min-height: 0; }
+        .notes-panel.active { display: flex; }
+        .notes-panel h3 { margin-bottom: 12px; color: #38bdf8; font-size: 15px; }
+        textarea { flex: 1; resize: none; padding: 12px; background: #0f172a; color: white; border: 1px solid #1f2937; border-radius: 8px; font-size: 14px; line-height: 1.6; font-family: 'Poppins', Arial, sans-serif; min-height: 0; }
+        textarea:focus { outline: none; border-color: #38bdf8; }
+        .save-btn { margin-top: 10px; padding: 10px; background: #38bdf8; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; color: #0f172a; transition: 0.2s; font-family: 'Poppins', Arial, sans-serif; flex-shrink: 0; }
+        .save-btn:hover { background: #0ea5e9; }
+        #status { margin-top: 8px; font-size: 12px; color: #38bdf8; text-align: center; min-height: 16px; flex-shrink: 0; }
+        .ai-panel { display: none; flex-direction: column; flex: 1; min-height: 0; }
+        .ai-panel.active { display: flex; }
+        .ai-context { padding: 10px 16px; background: rgba(56,189,248,0.05); border-bottom: 1px solid #1f2937; font-size: 11px; color: #64748b; flex-shrink: 0; }
+        .ai-context span { color: #38bdf8; font-weight: 500; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 99px; }
+        .ai-welcome { text-align: center; padding: 24px 16px; color: #475569; }
+        .ai-welcome .ai-icon { font-size: 36px; margin-bottom: 10px; }
+        .ai-welcome p { font-size: 13px; line-height: 1.6; }
+        .ai-welcome strong { color: #64748b; }
+        .msg { display: flex; flex-direction: column; gap: 4px; animation: msgIn 0.25s ease; }
+        @keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .msg-label { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+        .msg.user { align-items: flex-end; }
+        .msg.user .msg-label { color: #64748b; }
+        .msg.ai { align-items: flex-start; }
+        .msg.ai .msg-label { color: #38bdf8; }
+        .msg-bubble { max-width: 88%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.65; }
+        .msg.user .msg-bubble { background: #1e3a5f; border: 1px solid #1e40af; color: #e2e8f0; border-bottom-right-radius: 4px; }
+        .msg.ai .msg-bubble { background: #111827; border: 1px solid #1f2937; color: #cbd5e1; border-bottom-left-radius: 4px; }
+        .typing-indicator { display: none; align-items: flex-start; gap: 4px; flex-direction: column; padding: 0 16px 8px; }
+        .typing-indicator.show { display: flex; }
+        .typing-indicator .msg-label { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #38bdf8; }
+        .typing-dots { background: #111827; border: 1px solid #1f2937; border-radius: 12px; border-bottom-left-radius: 4px; padding: 12px 16px; display: flex; gap: 5px; align-items: center; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; background: #38bdf8; animation: bounce 1.2s ease-in-out infinite; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce { 0%,80%,100%{transform:scale(0.7);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+        .chat-input-area { padding: 12px 16px; border-top: 1px solid #1f2937; display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+        .chat-input { flex: 1; resize: none; padding: 10px 14px; background: #0f172a; color: white; border: 1px solid #1f2937; border-radius: 10px; font-size: 13px; font-family: 'Poppins', Arial, sans-serif; line-height: 1.5; max-height: 100px; overflow-y: auto; }
+        .chat-input:focus { outline: none; border-color: #38bdf8; }
+        .chat-input::placeholder { color: #475569; }
+        .send-btn { width: 38px; height: 38px; background: linear-gradient(135deg, #2563eb, #38bdf8); border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; transition: opacity 0.2s; }
+        .send-btn:hover { opacity: 0.85; }
+        .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         @media (max-width: 768px) {
-
-            .container {
-                flex-direction: column;
-                height: calc(100vh - 45px); /* subtract tab bar height */
-            }
-
-            .mobile-tabs {
-                display: flex;
-                background: #0f172a;
-                border-bottom: 1px solid #334155;
-            }
-
-            .mobile-tab {
-                flex: 1;
-                padding: 12px;
-                text-align: center;
-                font-size: 13px;
-                cursor: pointer;
-                color: #64748b;
-                border-bottom: 2px solid transparent;
-                transition: 0.2s;
-            }
-
-            .mobile-tab.active {
-                color: #38bdf8;
-                border-bottom-color: #38bdf8;
-            }
-
-            iframe {
-                width: calc(100% - 20px);
-                margin: 10px;
-                flex: 1;
-                min-height: 0;
-            }
-
-            .notes {
-                width: 100%;
-                flex: 1;
-                min-height: 0;
-            }
-
+            .mobile-tabs { display: flex; }
+            .container { flex-direction: column; height: calc(100vh - 45px); }
+            iframe { width: calc(100% - 20px); margin: 10px; flex: 1; min-height: 0; }
+            .right-panel { width: 100%; flex: 1; min-height: 0; border-left: none; border-top: 1px solid #1f2937; }
             .hidden-mobile { display: none !important; }
-        }
-
-        /* Desktop: hide tab switcher */
-        @media (min-width: 769px) {
-            .mobile-tabs { display: none; }
-        }
-
-        .notes h3 {
-            margin-bottom: 12px;
-            color: #38bdf8;
-        }
-
-        textarea {
-            flex: 1;
-            resize: none;
-            padding: 10px;
-            background: #0f172a;
-            color: white;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #38bdf8;
-        }
-
-        button {
-            margin-top: 10px;
-            padding: 10px;
-            background: #38bdf8;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #0f172a;
-            transition: 0.2s;
-        }
-
-        button:hover { background: #0ea5e9; }
-
-        #status {
-            margin-top: 8px;
-            font-size: 13px;
-            color: #38bdf8;
-            text-align: center;
-            min-height: 18px;
         }
     </style>
 </head>
 <body>
 
-<!-- Mobile tab bar (hidden on desktop via CSS) -->
 <div class="mobile-tabs">
-    <div class="mobile-tab active" id="tab-pdf" onclick="switchMobileTab('pdf')">📄 PDF</div>
-    <div class="mobile-tab" id="tab-notes" onclick="switchMobileTab('notes')">📝 Notes</div>
+    <div class="mobile-tab active" id="mob-pdf"   onclick="switchMobileTab('pdf')">📄 PDF</div>
+    <div class="mobile-tab"        id="mob-panel"  onclick="switchMobileTab('panel')">📝 Notes</div>
 </div>
 
 <div class="container">
 
     <iframe id="pdfFrame" src="<%= pdf %>"></iframe>
 
-    <div class="notes" id="notesPanel">
-        <h3>📝 My Notes</h3>
-        <textarea id="noteInput" placeholder="Write your notes here..."></textarea>
-        <button onclick="saveNote()">Save Notes</button>
-        <div id="status"></div>
-    </div>
+    <div class="right-panel" id="rightPanel">
 
+        <div class="panel-tabs">
+            <div class="panel-tab active" id="ptab-notes" onclick="switchPanelTab('notes', this)">📝 Notes</div>
+            <div class="panel-tab"        id="ptab-ai"    onclick="switchPanelTab('ai', this)">🤖 Ask AI</div>
+        </div>
+
+        <div class="notes-panel active" id="notesPanel">
+            <h3>📝 My Notes</h3>
+            <textarea id="noteInput" placeholder="Write your notes here..."></textarea>
+            <button class="save-btn" onclick="saveNote()">Save Notes</button>
+            <div id="status"></div>
+        </div>
+
+        <div class="ai-panel" id="aiPanel">
+            <div class="ai-context">
+                🎓 Context: <span id="ctxDisplay">General</span>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="ai-welcome">
+                    <div class="ai-icon">🤖</div>
+                    <p>Hi! I'm your AI study assistant.<br>
+                    <strong>Ask me anything about what you're reading</strong> — concepts, definitions, examples, or anything you don't understand.</p>
+                </div>
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <span class="msg-label">AI Tutor</span>
+                <div class="typing-dots">
+                    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <textarea class="chat-input" id="doubtInput" placeholder="Type your doubt here..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+                <button class="send-btn" id="sendBtn" onclick="sendDoubt()">➤</button>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <script>
-    const pdfUrl = "<%= pdf %>";
+    const pdfUrl      = "<%= pdf %>";
+    const subject     = "<%= subject %>";
+    const chapterName = "<%= chapterName %>";
+    let chatHistory   = [];
 
-    // ── Mobile tab switching ──
-    function switchMobileTab(tab) {
-        const pdf   = document.getElementById('pdfFrame');
-        const notes = document.getElementById('notesPanel');
-        const isMobile = window.innerWidth <= 768;
+    // Set context badge
+    document.getElementById("ctxDisplay").textContent =
+        subject ? (chapterName ? `${subject} — ${chapterName}` : subject) : "General";
 
-        if (!isMobile) return;
-
-        if (tab === 'pdf') {
-            pdf.classList.remove('hidden-mobile');
-            notes.classList.add('hidden-mobile');
+    // Panel tab switch (Notes / Ask AI)
+    function switchPanelTab(tab, el) {
+        document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        if (tab === 'notes') {
+            document.getElementById('notesPanel').classList.add('active');
+            document.getElementById('aiPanel').classList.remove('active');
+            document.getElementById('mob-panel').textContent = '📝 Notes';
         } else {
-            pdf.classList.add('hidden-mobile');
-            notes.classList.remove('hidden-mobile');
+            document.getElementById('notesPanel').classList.remove('active');
+            document.getElementById('aiPanel').classList.add('active');
+            document.getElementById('mob-panel').textContent = '🤖 Ask AI';
+            document.getElementById('doubtInput').focus();
+        }
+    }
+
+    // Mobile tab switch (PDF / Panel)
+    function switchMobileTab(tab) {
+        const pdfEl   = document.getElementById('pdfFrame');
+        const panelEl = document.getElementById('rightPanel');
+        if (tab === 'pdf') {
+            pdfEl.classList.remove('hidden-mobile');
+            panelEl.classList.add('hidden-mobile');
+        } else {
+            pdfEl.classList.add('hidden-mobile');
+            panelEl.classList.remove('hidden-mobile');
+        }
+        document.getElementById('mob-pdf').classList.toggle('active',   tab === 'pdf');
+        document.getElementById('mob-panel').classList.toggle('active', tab !== 'pdf');
+    }
+
+    if (window.innerWidth <= 768) {
+        document.getElementById('rightPanel').classList.add('hidden-mobile');
+    }
+
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+    }
+
+    function handleKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDoubt(); }
+    }
+
+    function appendMessage(role, text) {
+        const container = document.getElementById('chatMessages');
+        const welcome   = container.querySelector('.ai-welcome');
+        if (welcome) welcome.remove();
+        const label = role === 'user' ? 'You' : 'AI Tutor';
+        const div   = document.createElement('div');
+        div.className = `msg ${role}`;
+        div.innerHTML = `<span class="msg-label">${label}</span><div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    async function sendDoubt() {
+        const input    = document.getElementById('doubtInput');
+        const sendBtn  = document.getElementById('sendBtn');
+        const question = input.value.trim();
+        if (!question) return;
+
+        appendMessage('user', question);
+        chatHistory.push({ role: 'user', text: question });
+        input.value = '';
+        input.style.height = 'auto';
+        sendBtn.disabled = true;
+        document.getElementById('typingIndicator').classList.add('show');
+        document.getElementById('chatMessages').scrollTop = 99999;
+
+        try {
+            const res  = await fetch('/home/doubt/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question, subject, chapterName, history: chatHistory, pdfUrl })
+            });
+            const data = await res.json();
+            document.getElementById('typingIndicator').classList.remove('show');
+            if (data.success) {
+                appendMessage('ai', data.answer);
+                chatHistory.push({ role: 'ai', text: data.answer });
+            } else {
+                appendMessage('ai', '❌ ' + (data.message || 'Something went wrong.'));
+            }
+        } catch (err) {
+            document.getElementById('typingIndicator').classList.remove('show');
+            appendMessage('ai', '❌ Could not reach the server.');
         }
 
-        document.getElementById('tab-pdf').classList.toggle('active', tab === 'pdf');
-        document.getElementById('tab-notes').classList.toggle('active', tab === 'notes');
+        sendBtn.disabled = false;
+        input.focus();
     }
 
-    // On load — hide notes panel on mobile by default, show PDF
-    if (window.innerWidth <= 768) {
-        document.getElementById('notesPanel').classList.add('hidden-mobile');
-    }
-
-    // ── Load saved note from DB on page open ──
     async function loadNote() {
         try {
-            const res = await fetch(`/home/reader/notes?pdfUrl=${encodeURIComponent(pdfUrl)}`);
+            const res  = await fetch(`/home/reader/notes?pdfUrl=${encodeURIComponent(pdfUrl)}`);
             const data = await res.json();
             document.getElementById("noteInput").value = data.text;
-        } catch (err) {
-            console.log("Could not load notes", err);
-        }
+        } catch (err) { console.log("Could not load notes", err); }
     }
 
-    // ── Save note to DB ──
     async function saveNote() {
         const text = document.getElementById("noteInput").value.trim();
-
         try {
-            const res = await fetch("/home/reader/notes", {
+            const res  = await fetch("/home/reader/notes", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ pdfUrl, text })
             });
-
             const data = await res.json();
-
             if (data.success) {
                 document.getElementById("status").innerText = "✓ Notes Saved";
-                setTimeout(() => {
-                    document.getElementById("status").innerText = "";
-                }, 2000);
+                setTimeout(() => { document.getElementById("status").innerText = ""; }, 2000);
             }
-
-        } catch (err) {
-            console.log("Could not save notes", err);
-            document.getElementById("status").innerText = "❌ Save failed";
-        }
+        } catch (err) { document.getElementById("status").innerText = "❌ Save failed"; }
     }
 
-    // Load note when page opens
+    async function logProgress() {
+        try {
+            await fetch("/home/progress", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pdfUrl, subject, chapterName })
+            });
+        } catch (err) { console.log("Could not log progress", err); }
+    }
+
     loadNote();
+    logProgress();
 </script>
 
 </body>

@@ -84,7 +84,10 @@
 
     <div class="list">
         <% chapters.forEach(ch => { %>
-            <div class="chapter" onclick="openPractice('<%= ch.url %>')">
+            <div class="chapter"
+                data-url="<%= ch.url %>"
+                data-name="<%= ch.name %>"
+                onclick="openPractice(this)">
                 <%= ch.name %>
             </div>
         <% }) %>
@@ -93,8 +96,11 @@
 </div>
 
 <script>
-function openPractice(pdfUrl) {
-    window.location.href = `/practice/quiz?pdf=${encodeURIComponent(pdfUrl)}`;
+function openPractice(el) {
+    const pdfUrl      = el.dataset.url;
+    const chapterName = el.dataset.name;
+    const subject     = "<%= subject %>";
+    window.location.href = `/practice/quiz?pdf=${encodeURIComponent(pdfUrl)}&subject=${encodeURIComponent(subject)}&chapterName=${encodeURIComponent(chapterName)}`;
 }
 
 function goBack() {

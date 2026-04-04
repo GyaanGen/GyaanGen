@@ -4,6 +4,8 @@ const fs = require("fs");
 const path = require("path");
 const auth = require("../middleware/auth"); // protect the route
 const { handleNoteLoading, handleNoteMaking } = require("../controllers/notes");
+const { handleProfilePage, handleProgressSave } = require("../controllers/profile");
+const { handleDoubtSolving } = require("../controllers/doubt");
 
 router.get("/", auth, (req, res) => {
     const data = JSON.parse(
@@ -86,11 +88,22 @@ router.get("/chapters", auth, (req, res) => {
 });
 
 router.get("/reader", auth, (req, res) => {
-    const pdf = req.query.pdf;
-    res.render("reader", { pdf });
+    const pdf         = req.query.pdf;
+    const subject     = req.query.subject     || "";
+    const chapterName = req.query.chapterName || "";
+    res.render("reader", { pdf, subject, chapterName });
 });
 
 router.get("/reader/notes",auth, handleNoteLoading);
 router.post("/reader/notes",auth, handleNoteMaking);
+ 
+// ── Profile ──
+router.get("/profile", auth, handleProfilePage);
+ 
+// ── Progress tracking ──
+router.post("/progress", auth, handleProgressSave);
+
+// AI Doubt Solver
+router.post("/doubt/ask", auth, handleDoubtSolving);
 
 module.exports = router;

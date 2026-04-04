@@ -3,6 +3,7 @@ const router = express.Router();
 const fs = require("fs");
 const path = require("path");
 const auth = require("../middleware/auth");
+const { handleQuizResultSave }   = require("../controllers/profile");
 
 const { handlePracticeGeneration } = require("../controllers/practice");
 
@@ -87,8 +88,12 @@ router.get("/chapters", auth, (req, res) => {
 router.get("/generate", auth, handlePracticeGeneration);
 
 router.get("/quiz", auth, (req, res) => {
-    const pdf = req.query.pdf;
-    res.render("practice_quiz", { pdf });
+    const pdf         = req.query.pdf;
+    const subject     = req.query.subject     || "";
+    const chapterName = req.query.chapterName || "";
+    res.render("practice_quiz", { pdf, subject, chapterName });
 });
+
+router.post("/result", auth, handleQuizResultSave);
 
 module.exports = router;

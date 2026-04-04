@@ -5,6 +5,11 @@ const { verifyToken } = require("../services/jwtservices")
 const auth = async (req,res,next) =>{
     try{
 
+        // ── Tell browser NEVER to cache this response ──
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+
         const token  = req.cookies.token;
         if(!token){
             return res.redirect("/user/login");

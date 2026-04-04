@@ -697,7 +697,25 @@
                 <button class="retry-btn" onclick="retryMCQ()">↺ Retry MCQs</button>
             </div>
         `;
+        // ── Save quiz result to DB ──
+        saveQuizResult(score, allMcqs.length, pct);
     }
+    async function saveQuizResult(score, total, percentage) {
+        try {
+            const pdfUrl      = "<%= pdf %>";
+            const subject     = "<%= subject %>";
+            const chapterName = "<%= chapterName %>";
+
+            await fetch("/practice/result", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pdfUrl, subject, chapterName, score, total, percentage })
+            });
+        } catch (err) {
+            console.log("Could not save quiz result", err);
+        }
+    }
+
 
     function retryMCQ() {
         currentIndex = 0;

@@ -4,68 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chapters | GyaanGen</title>
-
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Poppins', Arial, sans-serif;
-            background: #0f172a;
-            color: white;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 720px;
-            margin: 0 auto;
-            padding: 30px 20px;
-        }
-
-        .back {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 24px;
-            cursor: pointer;
-            color: #94a3b8;
-            font-size: 14px;
-            transition: 0.2s;
-        }
-
+        body { font-family: 'Poppins', Arial, sans-serif; background: #0f172a; color: white; min-height: 100vh; }
+        .container { max-width: 720px; margin: 0 auto; padding: 30px 20px; }
+        .back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 24px; cursor: pointer; color: #94a3b8; font-size: 14px; transition: 0.2s; }
         .back:hover { color: #38bdf8; }
-
-        h2 {
-            margin-bottom: 20px;
-            font-size: 24px;
-            font-weight: 600;
-            color: #f1f5f9;
-        }
-
-        .list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .chapter {
-            background: #1e293b;
-            padding: 16px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: 0.25s;
-            border: 1px solid transparent;
-            font-size: 15px;
-            line-height: 1.4;
-        }
-
-        .chapter:hover {
-            background: #334155;
-            border-color: #38bdf8;
-            transform: translateX(4px);
-        }
-
+        h2 { margin-bottom: 20px; font-size: 24px; font-weight: 600; color: #f1f5f9; }
+        .list { display: flex; flex-direction: column; gap: 10px; }
+        .chapter { background: #1e293b; padding: 16px 20px; border-radius: 10px; cursor: pointer; transition: 0.25s; border: 1px solid transparent; font-size: 15px; line-height: 1.4; }
+        .chapter:hover { background: #334155; border-color: #38bdf8; transform: translateX(4px); }
         @media (max-width: 480px) {
             .container { padding: 20px 16px; }
             h2 { font-size: 20px; }
@@ -75,32 +24,31 @@
     </style>
 </head>
 <body>
-
 <div class="container">
-
     <div class="back" onclick="goBack()">← Back</div>
-
     <h2>Chapters</h2>
-
     <div class="list">
         <% chapters.forEach(ch => { %>
-            <div class="chapter" onclick="openPDF('<%= ch.url %>')">
+            <div class="chapter"
+                 data-url="<%= ch.url %>"
+                 data-name="<%= ch.name %>"
+                 onclick="openPDF(this)">
                 <%= ch.name %>
             </div>
         <% }) %>
     </div>
-
 </div>
-
 <script>
-function openPDF(url) {
-    window.location.href = `/home/reader?pdf=${encodeURIComponent(url)}`;
+function openPDF(el) {
+    const url         = el.dataset.url;
+    const chapterName = el.dataset.name;
+    const subject     = "<%= subject %>";
+    window.location.href = `/home/reader?pdf=${encodeURIComponent(url)}&subject=${encodeURIComponent(subject)}&chapterName=${encodeURIComponent(chapterName)}`;
 }
 
 function goBack() {
-    const subject  = "<%= subject.trim() %>";
+    const subject   = "<%= subject.trim() %>";
     const bookCount = "<%= bookCount %>";
-
     if (bookCount > "1") {
         window.location.href = `/home/subject?name=${encodeURIComponent(subject)}`;
     } else {
@@ -108,6 +56,5 @@ function goBack() {
     }
 }
 </script>
-
 </body>
 </html>
