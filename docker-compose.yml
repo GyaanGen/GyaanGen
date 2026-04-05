@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  db:
+    image: mongo:latest
+    container_name: gyaangen_mongodb
+    # Mapping default mongodb port
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gyaangen_app
+    ports:
+      - "8000:8000"
+    # Will read all other variables correctly from .env such as JWT_SECRET and GEMINI_API_KEY
+    env_file:
+      - .env
+    environment:
+      # Overrides the mongodb URL from the .env so docker can communicate with the local db service
+      - mongodb_url=mongodb://db:27017/GyaanGen
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  # The named volume guarantees persistence of data across container restarts
+  mongodb_data:
