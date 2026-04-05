@@ -188,7 +188,9 @@ body{
 
 <div class="topbar">
     <div class="user">
-        <span>Hi, <%= name || "User" %></span>
+        <a href="/home/profile" style="text-decoration:none; color:inherit;">
+        Hi, <%= name || "User" %>
+        </a>
         <a class="avatar" href="/home/profile">👤</a>
         <form action="/user/logout" method="POST" style="margin:0;">
             <button type="submit" class="logout-btn">Logout</button>

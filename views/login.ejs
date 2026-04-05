@@ -1,105 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | GyaanGen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #0f172a;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f172a, #020617);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             color: white;
+            padding: 20px;
         }
         .container {
             background: #1e293b;
             padding: 40px;
-            border-radius: 14px;
-            width: 340px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid #334155;
         }
-        .brand {
-            text-align: center;
-            font-size: 26px;
-            font-weight: 600;
-            color: #2563eb;
-            margin-bottom: 10px;
-        }
-        .tagline {
-            text-align: center;
-            font-size: 13px;
-            color: #94a3b8;
-            margin-bottom: 25px;
-        }
-
-        /* ✅ Error box */
-        .error {
-            background: #7f1d1d;
-            color: #fca5a5;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            margin-bottom: 12px;
-            border: 1px solid #ef4444;
-        }
-
+        .brand { text-align: center; font-size: 26px; font-weight: 600; color: #38bdf8; margin-bottom: 6px; }
+        .tagline { text-align: center; font-size: 13px; color: #64748b; margin-bottom: 28px; }
+        .error { background: rgba(127,29,29,0.5); color: #fca5a5; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; border: 1px solid #ef4444; }
+        label { font-size: 13px; color: #94a3b8; display: block; margin-bottom: 6px; margin-top: 14px; }
         input {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
+            padding: 12px 14px;
             border-radius: 8px;
             border: 1px solid #334155;
-            background: #020617;
+            background: #0f172a;
             color: white;
+            font-size: 14px;
+            font-family: 'Poppins', sans-serif;
             outline: none;
             transition: 0.2s;
-            box-sizing: border-box;
         }
-        input:focus { border-color: #2563eb; }
+        input:focus { border-color: #38bdf8; }
+        input::placeholder { color: #475569; }
         button {
             width: 100%;
-            padding: 12px;
+            padding: 13px;
             border-radius: 8px;
             border: none;
-            background: #2563eb;
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
             color: white;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 15px;
             cursor: pointer;
             transition: 0.2s;
-            margin-top: 10px;
+            margin-top: 22px;
+            font-family: 'Poppins', sans-serif;
         }
-        button:hover { background: #1d4ed8; }
-        .link {
-            text-align: center;
-            margin-top: 15px;
-            font-size: 14px;
-            color: #94a3b8;
-        }
-        a { color: #2563eb; text-decoration: none; }
+        button:hover { opacity: 0.9; }
+        .link { text-align: center; margin-top: 18px; font-size: 13px; color: #64748b; }
+        a { color: #38bdf8; text-decoration: none; }
         a:hover { text-decoration: underline; }
+        @media (max-width: 400px) {
+            .container { padding: 28px 20px; }
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="brand">GyaanGen</div>
     <div class="tagline">Learn Smarter. Stay Consistent.</div>
-
-    <!-- ✅ Only shows if error exists -->
     <% if (error) { %>
         <div class="error"><%= error %></div>
     <% } %>
-
     <form action="/user/login" method="POST">
-        <input type="email" name="email" placeholder="Email address" required />
-        <input type="password" name="password" placeholder="Password" required />
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="you@email.com" required />
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Your password" required />
         <button type="submit">Login</button>
     </form>
-
-    <div class="link">
-        Don't have an account? <a href="/user/signup">Create one</a>
-    </div>
+    <div class="link">Don't have an account? <a href="/user/signup">Create one</a></div>
 </div>
 </body>
 </html>

@@ -17,7 +17,7 @@ async function handleDoubtSolving(req, res) {
         const base64Data  = Buffer.from(arrayBuffer).toString("base64");
 
         // 3. Build conversation history as text
-        const historyText = (history || [])
+        const historyText = (history || []).slice(-10)
             .map(h => h.role === "user" ? `Student: ${h.text}` : `Tutor: ${h.text}`)
             .join("\n");
 

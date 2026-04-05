@@ -4,6 +4,8 @@ const cookieParser = require("cookie-parser");
 const app = express();
 const PORT = process.env.PORT || 8000;
 const connectDB = require("./config/db");
+const fs = require("fs");
+const path = require("path");
 
 connectDB();
 
@@ -13,6 +15,23 @@ app.use((req, res, next) => {
     res.set("Expires", "0");
     next();
 });
+
+const rateLimit = require("express-rate-limit");
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100                   // max 100 requests per IP
+});
+
+app.use(limiter);
+
+// read ONCE at startup
+const booksData = JSON.parse(
+    fs.readFileSync(path.join(__dirname, "public", "books.json"), "utf-8")
+);
+app.locals.booksData = booksData; // available in all routes as req.app.locals.booksData
+
+
 
 app.get("/", (req, res) => {
     return res.redirect("/home");

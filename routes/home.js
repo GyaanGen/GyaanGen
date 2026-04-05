@@ -8,9 +8,7 @@ const { handleProfilePage, handleProgressSave } = require("../controllers/profil
 const { handleDoubtSolving } = require("../controllers/doubt");
 
 router.get("/", auth, (req, res) => {
-    const data = JSON.parse(
-        fs.readFileSync(path.join(__dirname, "../public/books.json"), "utf-8")
-    );
+    const data = req.app.locals.booksData;  
 
     const userClass = req.user.userClass;  // ✅ from DB
     const name = req.user.name;        // ✅ from DB
@@ -30,9 +28,7 @@ router.get("/", auth, (req, res) => {
 router.get("/subject", auth, (req, res) => {
     const subjectName = req.query.name;
 
-    const data = JSON.parse(
-        fs.readFileSync(path.join(__dirname, "../public/books.json"), "utf-8")
-    );
+    const data = req.app.locals.booksData;
 
     const userClass = req.user.userClass;
 
@@ -61,9 +57,7 @@ router.get("/subject", auth, (req, res) => {
 router.get("/chapters", auth, (req, res) => {
     const { subject, book } = req.query;
 
-    const data = JSON.parse(
-        fs.readFileSync(path.join(__dirname, "../public/books.json"), "utf-8")
-    );
+    const data = req.app.locals.booksData;
 
     const userClass = req.user.userClass;
 
