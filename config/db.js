@@ -1,7 +1,6 @@
 
 const mongoose = require("mongoose");
 
-dotenv.config();
 
 const connectDB = async (req,res) =>{
     try{    
