@@ -127,6 +127,18 @@
     const subject     = "<%= subject %>";
     const chapterName = "<%= chapterName %>";
     let chatHistory   = [];
+    let cachedBase64 = null;
+
+    async function getPdfBase64() {
+        if (cachedBase64) return cachedBase64;  // return cached if already fetched
+
+        const response    = await fetch(pdfUrl);
+        const arrayBuffer = await response.arrayBuffer();
+        cachedBase64 = btoa(
+            new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+        return cachedBase64;
+    }
 
     // Set context badge
     document.getElementById("ctxDisplay").textContent =
@@ -188,43 +200,54 @@
         container.scrollTop = container.scrollHeight;
     }
 
-    async function sendDoubt() {
-        const input    = document.getElementById('doubtInput');
-        const sendBtn  = document.getElementById('sendBtn');
-        const question = input.value.trim();
-        if (!question) return;
+async function sendDoubt() {
+    const input    = document.getElementById('doubtInput');
+    const sendBtn  = document.getElementById('sendBtn');
+    const question = input.value.trim();
+    if (!question) return;
 
-        appendMessage('user', question);
-        chatHistory.push({ role: 'user', text: question });
-        input.value = '';
-        input.style.height = 'auto';
-        sendBtn.disabled = true;
-        document.getElementById('typingIndicator').classList.add('show');
-        document.getElementById('chatMessages').scrollTop = 99999;
+    appendMessage('user', question);
+    chatHistory.push({ role: 'user', text: question });
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+    document.getElementById('typingIndicator').classList.add('show');
+    document.getElementById('chatMessages').scrollTop = 99999;
 
-        try {
-            const res  = await fetch('/home/doubt/ask', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question, subject, chapterName, history: chatHistory, pdfUrl })
-            });
-            const data = await res.json();
-            document.getElementById('typingIndicator').classList.remove('show');
-            if (data.success) {
-                appendMessage('ai', data.answer);
-                chatHistory.push({ role: 'ai', text: data.answer });
-            } else {
-                appendMessage('ai', '❌ ' + (data.message || 'Something went wrong.'));
-            }
-        } catch (err) {
-            document.getElementById('typingIndicator').classList.remove('show');
-            appendMessage('ai', '❌ Could not reach the server.');
+    try {
+        // fetch PDF as base64 (cached after first call)
+        const base64Data = await getPdfBase64();
+
+        const res  = await fetch('/home/doubt/ask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                question,
+                subject,
+                chapterName,
+                history: chatHistory,
+                base64Data              // ← send base64 instead of pdfUrl
+            })
+        });
+
+        const data = await res.json();
+        document.getElementById('typingIndicator').classList.remove('show');
+
+        if (data.success) {
+            appendMessage('ai', data.answer);
+            chatHistory.push({ role: 'ai', text: data.answer });
+        } else {
+            appendMessage('ai', '❌ ' + (data.message || 'Something went wrong.'));
         }
 
-        sendBtn.disabled = false;
-        input.focus();
+    } catch (err) {
+        document.getElementById('typingIndicator').classList.remove('show');
+        appendMessage('ai', '❌ Could not reach the server.');
     }
 
+    sendBtn.disabled = false;
+    input.focus();
+}
     async function loadNote() {
         try {
             const res  = await fetch(`/home/reader/notes?pdfUrl=${encodeURIComponent(pdfUrl)}`);

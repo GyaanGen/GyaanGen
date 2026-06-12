@@ -3,39 +3,28 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 async function handleDoubtSolving(req, res) {
     try {
-        const { question, subject, chapterName, history, pdfUrl } = req.body;
+        const { question, subject, chapterName, history, base64Data } = req.body;
 
-        // 1. Fetch the PDF
-        const pdfResponse = await fetch(pdfUrl, {
-            headers: { "User-Agent": "Mozilla/5.0", "Accept": "application/pdf" }
-        });
+        if (!question || !base64Data) {
+            return res.status(400).json({ success: false, message: "Missing question or PDF data" });
+        }
 
-        if (!pdfResponse.ok) throw new Error("Failed to fetch PDF");
+        const recentHistory = (history || []).slice(-10);
 
-        // 2. Convert to base64
-        const arrayBuffer = await pdfResponse.arrayBuffer();
-        const base64Data  = Buffer.from(arrayBuffer).toString("base64");
-
-        // 3. Build conversation history as text
-        const historyText = (history || []).slice(-10)
+        const historyText = recentHistory
             .map(h => h.role === "user" ? `Student: ${h.text}` : `Tutor: ${h.text}`)
             .join("\n");
 
-        // 4. Build prompt
-        const prompt = `You are a helpful and friendly academic tutor. 
-        The student is reading the attached PDF${subject ? ` (Subject: ${subject}${chapterName ? `, Chapter: ${chapterName}` : ""})` : ""}.
+        const prompt = `You are a helpful and friendly academic tutor. The student is reading the attached PDF${subject ? ` (Subject: ${subject}${chapterName ? `, Chapter: ${chapterName}` : ""})` : ""}.
 
-        Answer the student's doubt based on the content of this PDF. 
-        Be clear, simple, and student-friendly. Use examples if helpful. 
-        Keep answers concise but complete.
+Answer the student's doubt based on the content of this PDF. Be clear, simple, and student-friendly. Use examples if helpful. Keep answers concise but complete.
 
-        ${historyText ? `Previous conversation:\n${historyText}\n` : ""}
-        Student: ${question}
-        Tutor:`;
+${historyText ? `Previous conversation:\n${historyText}\n` : ""}
+Student: ${question}
+Tutor:`;
 
-        // 5. Send PDF + question to Gemini
         const result = await ai.models.generateContent({
-            model: "gemini-3.1-flash-lite-preview",
+            model: "gemini-2.0-flash",
             contents: [
                 prompt,
                 {

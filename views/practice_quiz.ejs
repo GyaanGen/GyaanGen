@@ -673,40 +673,62 @@
         }).join('');
     }
 
-    // ── Fetch questions from backend ──
-    async function loadQuestions() {
-        try {
-            const res  = await fetch(`/practice/generate?pdfUrl=${encodeURIComponent(pdfUrl)}`);
-            const data = await res.json();
+// ── Fetch questions from backend ──
+async function loadQuestions() {
+    try {
+        // 1. Fetch PDF in browser
+        document.getElementById('loader').querySelector('.loader-text').textContent
+            = "Loading chapter PDF...";
 
-            if (!data.success) {
-                document.getElementById('loader').innerHTML =
-                    `<p style="color:#f87171;font-size:14px;">❌ Failed to generate questions. Please go back and try again.</p>`;
-                return;
-            }
+        const pdfResponse = await fetch(pdfUrl);
+        if (!pdfResponse.ok) throw new Error("Failed to fetch PDF");
 
-            const { mcqs, short_answers, long_answers, discussion_questions } = data.questions;
-            allMcqs = mcqs;
+        // 2. Convert to base64 in browser
+        const arrayBuffer = await pdfResponse.arrayBuffer();
+        const base64Data  = btoa(
+            new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
 
-            document.getElementById('mcqPill').textContent   = mcqs.length;
-            document.getElementById('shortPill').textContent = short_answers.length;
-            document.getElementById('longPill').textContent  = long_answers.length;
-            document.getElementById('discPill').textContent  = discussion_questions.length;
+        document.getElementById('loader').querySelector('.loader-text').textContent
+            = "Generating questions with AI...";
 
-            renderMCQ(0);
-            renderWritten(short_answers,        'shortContainer', 'short-num', 'short');
-            renderWritten(long_answers,         'longContainer',  'long-num',  'long');
-            renderWritten(discussion_questions, 'discContainer',  'disc-num',  'disc');
+        // 3. Send base64 to backend
+        const res  = await fetch('/practice/generate', {
+            method: 'POST',                              // ← POST now
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ base64Data })         // ← send base64
+        });
 
-            document.getElementById('loader').style.display      = 'none';
-            document.getElementById('mainContent').style.display = 'block';
+        const data = await res.json();
 
-        } catch (err) {
-            console.log('Error:', err);
+        if (!data.success) {
             document.getElementById('loader').innerHTML =
-                `<p style="color:#f87171;font-size:14px;">❌ Something went wrong. Please go back and try again.</p>`;
+                `<p style="color:#f87171;font-size:14px;">❌ Failed to generate questions. Please go back and try again.</p>`;
+            return;
         }
+
+        const { mcqs, short_answers, long_answers, discussion_questions } = data.questions;
+        allMcqs = mcqs;
+
+        document.getElementById('mcqPill').textContent   = mcqs.length;
+        document.getElementById('shortPill').textContent = short_answers.length;
+        document.getElementById('longPill').textContent  = long_answers.length;
+        document.getElementById('discPill').textContent  = discussion_questions.length;
+
+        renderMCQ(0);
+        renderWritten(short_answers,        'shortContainer', 'short-num', 'short');
+        renderWritten(long_answers,         'longContainer',  'long-num',  'long');
+        renderWritten(discussion_questions, 'discContainer',  'disc-num',  'disc');
+
+        document.getElementById('loader').style.display      = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+
+    } catch (err) {
+        console.log('Error:', err);
+        document.getElementById('loader').innerHTML =
+            `<p style="color:#f87171;font-size:14px;">❌ Something went wrong. Please go back and try again.</p>`;
     }
+}
 
     loadQuestions();
 </script>
