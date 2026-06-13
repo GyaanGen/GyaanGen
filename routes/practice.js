@@ -85,7 +85,7 @@ router.get("/chapters", auth, (req, res) => {
 });
 
 // when user clicks a chapter, this route is called
-router.get("/generate", auth, handlePracticeGeneration);
+router.post("/generate", auth, handlePracticeGeneration);
 
 router.get("/quiz", auth, (req, res) => {
     const pdf         = req.query.pdf;

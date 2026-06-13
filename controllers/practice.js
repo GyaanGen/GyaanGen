@@ -4,11 +4,16 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 async function handlePracticeGeneration(req, res) {
     try {
         // ── Receive base64 from client instead of fetching PDF ──
+
+        // console.log("=== PRACTICE HIT ===");
+        // console.log("base64Data received:", !!req.body.base64Data);
+        // console.log("base64Data length:", req.body.base64Data?.length);
         const { base64Data } = req.body;
 
         if (!base64Data) {
             return res.json({ success: false, message: "No PDF data received" });
         }
+        //console.log("Sending to Gemini...");
 
         const prompt = `Act as an expert academic examiner. Analyze the attached PDF and generate a comprehensive question set.
         You must output ONLY a valid JSON object. Do not include any markdown formatting, backticks, or extra text.
@@ -24,7 +29,7 @@ async function handlePracticeGeneration(req, res) {
         Generate exactly 10 MCQs, 10 short answers, 10 long answers, and 2 discussion questions.`;
 
         const result = await ai.models.generateContent({
-            model: "gemini-2.0-flash",
+            model: "gemini-3.1-flash-lite-preview",
             contents: [
                 prompt,
                 {
@@ -41,11 +46,17 @@ async function handlePracticeGeneration(req, res) {
             }
         });
 
+        //console.log("Gemini responded successfully");
+
         const questions = JSON.parse(result.text);
         return res.json({ success: true, questions });
 
     } catch (error) {
-        console.log("Error generating questions", error);
+        // console.log("=== PRACTICE ERROR ===");
+        // console.log("Error name:", error.name);
+        // console.log("Error message:", error.message);
+
+        //console.log("Error generating questions", error);
         return res.json({ success: false, message: "Failed to generate questions" });
     }
 }

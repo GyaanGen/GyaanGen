@@ -677,8 +677,6 @@
 async function loadQuestions() {
     try {
         // 1. Fetch PDF in browser
-        document.getElementById('loader').querySelector('.loader-text').textContent
-            = "Loading chapter PDF...";
 
         const pdfResponse = await fetch(pdfUrl);
         if (!pdfResponse.ok) throw new Error("Failed to fetch PDF");

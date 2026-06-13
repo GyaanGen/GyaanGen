@@ -45,6 +45,11 @@ app.set("view engine", "ejs");
 
 app.use("/user", require("./routes/user"));
 app.use("/home", require("./routes/home"));
+
+// app.use("/practice", (req, res, next) => {
+//     console.log("PRACTICE ROUTE HIT:", req.method, req.path);
+//     next();
+// });
 app.use("/practice", require("./routes/practice")); // ✅ practice routes
 
 app.listen(PORT, () => console.log(`Server started at ${PORT}`));
